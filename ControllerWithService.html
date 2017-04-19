@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "myApp">
+<br><br><br>
+
+<script>
+
+    <!-- CODE -->
+
+    angular.module('myApp', []);
+
+    angular.module('myApp').service('tankService', ['$q', function($q){
+        this.getCurrentStats = function(){
+            //Just to give it a behaviour of returning a promise
+            var response =  {
+                tankAvgHours: 8,
+                stillAvgHours: 2,
+                stillRemaining: 200,
+                tankRemaining: 50
+            }
+            var deffered = $q.defer();
+            promise = deffered.promise;
+            deffered.resolve(angular.copy(response));
+            return promise;
+        }
+    }]);
+
+    angular.module('myApp').controller('appCtrl', ['$scope', 'tankService', function($scope, tankService){
+        tankService.getCurrentStats().then(function (response) {
+            $scope.stats = {};
+            $scope.stats.tankAvgHours = response.tankAvgHours;
+            $scope.stats.stillAvgHours = response.stillAvgHours;
+            $scope.stats.stillRemaining = response.stillRemaining;
+            $scope.stats.tankRemaining = response.tankRemaining;
+            $scope.stats.loaded = true;
+        });
+    }]);
+
+
+    <!-- JASMINE -->
+
+    describe('controller: appCtrl', function() {
+	  var $scope, tankService, appCtrl;
+
+	  var response = {
+          tankAvgHours: 8,
+          stillAvgHours: 2,
+          stillRemaining: 200,
+          tankRemaining: 50
+      };
+
+	  beforeEach(module('myApp'));
+
+	  beforeEach(inject(function($controller, $rootScope, _tankService_) {
+	  	$scope = $rootScope.$new();
+	  	tankService = _tankService_;
+
+	    spyOn(tankService, 'getCurrentStats').and.callFake(function(){
+	    	return{
+	    		then: function(successCallback){
+                    successCallback(response);
+	    		}
+	    	}
+	    });
+
+	    AdminController = $controller('appCtrl', {
+	      $scope: $scope,
+	      tankService: _tankService_
+	    });
+	  }));
+
+	  describe('appCtrl initialization', function() {
+	    it('calls service and allocates stats with returned data', function() {
+	      expect(tankService.getCurrentStats).toHaveBeenCalled();
+          expect($scope.stats.tankAvgHours).toEqual(response.tankAvgHours);
+          expect($scope.stats.stillAvgHours).toEqual(response.stillAvgHours);
+          expect($scope.stats.stillRemaining).toEqual(response.stillRemaining);
+          expect($scope.stats.tankRemaining).toEqual(response.tankRemaining);
+          expect($scope.stats.loaded).toBeTruthy();
+	    });
+	  });
+	});
+</script>
+
+</body>
+
+</html>

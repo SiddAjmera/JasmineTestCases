@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "myApp">
+
+<div ng-controller = "abcController">
+{{greeting}}
+</div>
+<br><br><br>
+
+<script>
+
+    <!-- CODE -->
+
+    var app = angular.module('myApp', [])
+    app.constant('Config',
+    {
+        baseURL : 'serviceURL',
+        httpTimeout : 3600000 // 1 minute
+    });
+    app.config(function($logProvider) {
+        $logProvider.debugEnabled(true);
+    });
+
+    app.factory('abcFactory', function(){
+        return {}
+    });
+
+    app.controller('abcController', function ($scope, $log,abcFactory, Config) {
+        $scope.testFlag = false;
+    });
+
+    <!-- JASMINE -->
+
+    describe('Abc Controller', function() {
+      var $scope = null;
+      var ctrl = null;
+      var Config = {
+        baseURL : 'someURL',
+        httpTimeout : 3600000 // 1 minute
+      };
+
+      beforeEach(function(){
+            beforeEach(module('myApp'));
+            module(function (_$provide_) {
+                $provide = _$provide_;
+                $provide.value('Config', Config);
+            });
+      });
+
+      //you need to indicate your module in a test
+      
+      beforeEach(inject(function($rootScope, $controller) {
+        $scope = $rootScope.$new();
+        ctrl = $controller('abcController', {
+          $scope: $scope
+        });
+      }));
+
+
+      // test 1
+      it('testFlag should be set to False', function() {
+        expect( $scope.testFlag).toEqual(false);
+      });
+    });
+</script>
+
+</body>
+
+</html>

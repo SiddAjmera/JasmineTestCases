@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "blah">
+
+<div ng-controller = "AdminController">
+{{greeting}}
+</div>
+<br><br><br>
+
+<script>
+
+    //Controller
+    (function() {
+	  angular
+	    .module('blah', [])
+	    .controller('AdminController', AdminController);
+
+	  /* @ngInject */
+	  function AdminController($scope, toastr, adminService) {
+	  	$scope.greeting = "Hello World!";
+
+	  	/**
+	     * Gets all users.
+	     */
+	    $scope.getAllUsers = function() {
+	      adminService.getAllUsers()
+	        .then(function(response) {
+	          $scope.users = response.data;
+	        }, function(error) {
+	          toastr.error('Unable to load users', 'Error');
+	          console.log(error);  
+	        });
+	     }
+
+	    activate();
+
+	    /**
+	     * Controller initialisation.
+	     */
+	    function activate() {
+	      $scope.getAllUsers();
+	    }
+	  }
+	})();
+
+	//environmentConfig Constant. Replace this with yours.
+	(function(){
+		angular.module('blah').constant('environmentConfig', {
+			apiBaseUrl: 'https://www.something.com'
+		})
+	})();
+
+	//toastr Service. Replace this with yours
+	(function() {
+	  angular
+	    .module('blah')
+	    .factory('toastr', toastr);
+
+	  /* @ngInject */
+	  function toastr() {
+	    var service = {
+	      error: error
+	    };
+
+	    return service;
+
+	    /**
+	     * Gets all user objects.
+	     */
+	    function error(a, b) {
+	      console.log("Here's the error : ", a);
+	    }
+	  }
+	})();	
+
+	//adminService
+	(function() {
+	  angular
+	    .module('blah')
+	    .factory('adminService', adminService);
+
+	  /* @ngInject */
+	  function adminService($http, environmentConfig) {
+
+	  	/**
+	     * Gets all user objects.
+	     */
+	    function getAllUsers() {
+	      return $http.get(environmentConfig.apiBaseUrl + '/user');
+	    }
+
+	    var service = {
+	      getAllUsers: getAllUsers
+	    };
+
+	    return service;
+	  }
+	})();
+
+    //Test Cases
+    describe('controller: AdminController', function() {
+	  var scope, $scope, toastr, adminService, AdminController, flag;
+
+	  var listOfTestUsers = [
+	    { name: 'Dave', id: 1 },
+	    { name: 'Bob', id: 2 },
+	    { name: 'Bill', id:3 }
+	  ];
+
+	  beforeEach(module('blah'));
+
+	  beforeEach(inject(function($controller, $rootScope, _toastr_, _adminService_) {
+
+	  	scope = $rootScope.$new();
+	  	toastr = _toastr_;
+	  	adminService = _adminService_;
+
+
+	    spyOn(adminService, 'getAllUsers').and.callFake(function(){
+	    	return{
+	    		then: function(successCallback, errorCallback){
+	    			if(flag === 'success') successCallback(listOfTestUsers);
+	    			else errorCallback("Error");
+	    		}
+	    	}
+	    });
+
+	    AdminController = $controller('AdminController', {
+	      $scope: scope,
+	      toastr: _toastr_,
+	      adminService: _adminService_
+	    });
+	  }));
+
+	  describe('The getAllUsers function should exist', function() {
+	    it('should work', function() {
+	      expect(AdminController).toBeDefined();
+	    });
+	  });
+	});
+</script>
+
+</body>
+
+</html>

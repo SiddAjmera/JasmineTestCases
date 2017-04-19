@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-route.js"></script> 
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "myapp">
+<br><br><br>
+
+<script>
+
+    <!-- CODE -->
+
+    angular.module('myapp', ['ngRoute'])
+    .controller('MainCtrl', function ($scope, $http, $rootScope, $routeParams ) {
+        $scope.name = "Girish";
+        $scope.sayHello = function () {
+            $scope.greeting = "Hello " + $scope.name;
+        };
+        $scope.commonUrl = "/";
+        $rootScope.$watch('eng', function () {
+            $scope.currentLang = $rootScope.CURRENT_LANGUAGE;
+        });    
+        $scope.homePageFirstSlider = function () {
+            $scope.anun = "Nar";    
+            $http({
+                method: 'GET',
+                url: "/" + "eng" + '/api/getslideritems/main'
+            }).then(function successCallback(response) {
+                $scope.Data = response.data;
+                $scope.loadCss('mainCarousel');
+            }, function errorCallback(response) {
+
+            });
+        };
+    });
+
+    <!-- JASMINE -->
+    describe('myapp', function() {
+        beforeEach(module('myapp'));
+
+        //Replace this
+        beforeEach(inject(function($controller, _$rootScope_){
+        //With this
+        // beforeEach(inject(function($controller, _$rootScope_, _$routeParams_, _$http_){
+
+            //Uncomment the following comments if needed for writing tests for the $watch function.
+            // $rootScope = _$rootScope_;
+            $scope = _$rootScope_.$new();
+            // $http = _$http_;
+            // $routeParams = _$routeParams_;
+            controller = $controller('MainCtrl', { 
+                $scope: $scope,
+                // $http: $http,
+                // $rootScope: $rootScope,
+                // $routeParams: $routeParams
+            });
+        }));
+
+        describe('$scope.sayHello', function() {
+            it('same tests', function() {
+                $scope.name = 'Girish';
+                $scope.sayHello();
+                expect($scope.greeting).toEqual('Hello Girish');
+            });
+        });
+    });
+</script>
+
+</body>
+
+</html>

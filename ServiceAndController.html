@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "MyApp">
+<br><br><br>
+
+<script>
+
+    <!-- CODE -->
+
+    angular.module('MyApp', []);
+
+    angular.module('MyApp')
+    .service('MyService', ['$http', function ($http) {                                                  
+        return {
+            getMyData: function (extension) {                                        
+                return $http.get('www.something.com');
+            }                
+        };
+    }]);
+
+    angular.module('MyApp')
+    .controller('MyAppController', ['$scope', function($scope){
+        var extension = { foo: 'bar' };
+        var getMyData = function () {
+            MyService.getMyData(extension).success(function (results) {
+                //Some functionality here
+            }).error(function (err, status) {
+                //Some functionality here
+            });
+        }
+        $scope.Call=function(){
+            getMyData();
+        }
+        $scope.Call();
+    }]);
+
+    <!-- JASMINE -->
+
+    describe('Controller: MyAppController', function(){
+        beforeEach(module('MyApp'));
+        var flag, extension;
+        extension = { foo: "bar" };
+        beforeEach(inject(function($controller, $rootScope, _MyService_) {
+            $scope = $rootScope.$new();
+            MyService = _MyService_;
+            spyOn(MyService, 'getMyData').and.callFake(function(){
+                if(flag){
+                    return{
+                        success: function(successCallback){
+                            successCallback();
+                        }
+                    }
+                }else{
+                    return{
+                        success: function(){
+                            return {
+                                foo: 'bar',
+                                error: function(errorCallback){
+                                    errorCallback();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            MyAppController = $controller('MyAppController', {
+                $scope: $scope,
+                MyService: MyService
+            });
+        }));
+
+        describe('function: Call', function() {
+            //Text for Success Callback
+            it('should implicitly call MyService.getMyData with an extension object', function() {
+                flag = true;
+                $scope.Call();
+                expect(MyService.getMyData).toHaveBeenCalledWith(extension);
+            });
+            //Text for Error Callback
+            it('should implicitly call MyService.getMyData with an extension object', function() {
+                flag = false;
+                $scope.Call();
+                expect(MyService.getMyData).toHaveBeenCalledWith(extension);
+            });
+        });
+    });
+
+</script>
+
+</body>
+
+</html>

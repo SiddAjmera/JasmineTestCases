@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body ng-app="myUI">
+    <br><br><br>
+
+    <script>
+        <!-- CODE -->
+        angular.module('myUI', [])
+            .directive('myHeader', function() {
+                return {
+                    restrict: 'A',
+                    template: '<div><button ng-click="logoutHeader()">Logout</button></div>',
+                    scope: {},
+                    controller: function($scope) {
+                        $scope.logoutHeader = function() {
+                            require('electron').remote.app.quit();
+                        }
+                    }
+                }
+            });
+
+        <!-- JASMINE -->
+        describe('myHeader', function() {
+            var $compile, $rootScope, elements, scope, deferred
+
+            beforeEach(module('myUI'))
+
+            beforeEach(inject(function(_$compile_, _$rootScope_) {
+                // The injector unwraps the underscores (_) from around the parameter names when matching
+                $compile = _$compile_
+                $rootScope = _$rootScope_
+                scope = $rootScope.$new()
+
+                elements = angular.element('<div my-header></div>')
+                $compile(elements)($rootScope.$new())
+                $rootScope.$digest()
+                controller = elements.controller('myHeader')
+                scope = elements.isolateScope() || elements.scope()
+                scope.$digest()
+            }));
+
+            it('should check scope.isAuthenticated', function() {
+                scope.logoutHeader()
+            });
+        });
+    </script>
+
+</body>
+
+</html>

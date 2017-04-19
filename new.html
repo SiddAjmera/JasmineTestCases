@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "app">
+
+<div ng-controller = "mainCTRL">
+{{title}}
+</div>
+<br><br><br>
+
+<script>
+	//AngularJS Code
+
+    var app = angular.module("app",[]);
+
+	app.controller("mainCTRL", ["$scope","dataFactory",function($scope,dataFactory){
+	  	$scope.title = "Hello World";
+	  	dataFactory.getEntries("fakeSuffix");  
+	}]);
+
+	app.factory('dataFactory', ['$http', '$window', '$log', function ($http, $window, $log) {
+        //var urlBase = $window.location.origin + '/api', 
+        var urlBase = '/api',	//Change here.
+        dataFactory = {};
+        /**
+        * get all Entries.
+        **/
+        dataFactory.getEntries = function (suffix) {
+            $log.debug("************ Get All Entries ************");
+            $log.debug("url:", urlBase + suffix);
+            return $http.get(urlBase + suffix, { headers: { cache: false } });
+        };
+
+        /**
+        * get single Entry.
+        **/
+        dataFactory.getEntry = function (id) {
+            $log.debug("************ Get Single Entry ************");
+            return $http.get(urlBase + '/' + id);
+        };
+
+        /**
+        * insert Entry
+        **/
+        dataFactory.postEntry = function (method, entry) {
+            var url = urlBase + '/' + method;
+            return $http.post(url, entry);
+        };
+
+        /**
+        * update Entry
+        **/
+        dataFactory.updateEntry = function (entry) {
+            $log.debug("************ Update Single Entry ************");
+            return $http.put(urlBase + '/' + entry.id, entry);
+        };
+
+        /**
+        * delete Entry
+        **/
+        dataFactory.deleteEntry = function (id) {
+            $log.debug("************ Delete Single Entry ************");
+            return $http.delete(urlBase + '/' + id);
+        };
+
+        return dataFactory;
+    }]);
+
+	//Jasmine Test Case
+	describe('factory: dataFactory', function() {
+
+        var dataFactory, $http, $window, $log, $httpBackend;
+
+        beforeEach(module('app'));
+
+        beforeEach(inject(function (_dataFactory_, _$http_, _$window_, _$log_, _$httpBackend_) {
+        	dataFactory = _dataFactory_;
+        	$http = _$http_;
+        	$window = _$window_;
+        	$log = _$log_;
+        	$httpBackend = _$httpBackend_;
+
+            $httpBackend.when('GET', "/api/suffix").respond({
+            	status: 200,
+            	data: "data"
+            });
+
+            $httpBackend.when('GET', "/api/id").respond({
+            	status: 200,
+            	data: "data"
+            });
+
+            $httpBackend.when('POST', "/api/method").respond({
+            	status: 200,
+            	data: "data"
+            });
+
+            $httpBackend.when('PUT', "/api/id").respond({
+            	status: 200,
+            	data: "data"
+            });
+
+            $httpBackend.when('DELETE', "/api/id").respond({
+            	status: 200,
+            	data: "data"
+            });
+        }));
+
+        afterEach(function() {
+            $httpBackend.verifyNoOutstandingExpectation();
+            $httpBackend.verifyNoOutstandingRequest();
+        });
+        
+        describe('function: getEntries', function(){
+        	//A sample test case for getEntries
+            it('should get all enteries', function(){
+            	var response = dataFactory.getEntries("/suffix");
+            	response.then(function(res){
+            		expect(res.status).toEqual(200);
+            	});
+            	$httpBackend.flush();
+            });
+        });
+    });
+</script>
+
+</body>
+
+</html>

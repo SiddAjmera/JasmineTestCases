@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body ng-app="myApp">
+    <br><br><br>
+
+    <script>
+
+    <!-- CODE -->
+
+    angular.module('aWareAdmin', []).service('ingredientsNames', ['$q', '$log', function($q, $log) {
+    var names = [],
+        msg = {
+            cursor: null,
+            size: 100
+        },
+        requestSent = false,
+        hasMore = true,
+        self = this,
+        defaultLanguage = {
+            code: 'nc',
+            name: 'Default (INCI)'
+        }
+    ;
+
+    // Recursive function for getting ingredients names
+    this.fetch = function() {
+        var deferred = $q.defer();
+
+        if (requestSent) {
+            return deferred.promise;
+        }
+
+        if (!hasMore) {
+            deferred.resolve(names);
+
+            return deferred.promise;
+        }
+
+        if (!env.isProduction()) {
+            msg.size = 20;
+        }
+
+        aware.execute('admin.ingredients.names', msg).then(function(response) {
+            if (response.names) {
+                $log.info('Received Ingredients Names: ', response.names);
+                angular.forEach(response.names, function(name) {
+                    this.push(name);
+                }, names);
+
+                msg.cursor = response.cursor;
+
+                hasMore = response.more;
+
+                deferred.resolve(response.names);
+            } else {
+                $log.debug('Ingredients Names API not sending names: ', response);
+
+                hasMore = response.more;
+
+                deferred.reject('No items were received.');
+            }
+
+            requestSent = false;
+
+            if (hasMore && env.isProduction()) {
+                self.fetch();
+            }
+        }, function (error) {
+            $log.debug('Error: fetch ingredients names!', error);
+        });
+
+        requestSent = true;
+
+        return deferred.promise;
+    };
+
+    // Return ingredients names
+    this.getNames = function() {
+        return names;
+    };
+
+
+    <!-- JASMINE -->
+
+    describe('service: serviceA', function() {
+
+        var serviceA ;
+
+        beforeEach(function(){
+            module('myApp');
+        });
+
+        beforeEach(inject(function (_serviceA_) {
+            serviceA = _serviceA_;
+        }));
+        
+        describe('method: methodName', function(){
+            it('should initialize some variables', function(){
+                expect(serviceA).toBeDefined();
+                var context = "Hello World!"
+                expect(serviceA.methodName(context)).toEqual("Hello World! is the context.");
+            });
+        });
+    });
+</script>
+
+</body>
+
+</html>

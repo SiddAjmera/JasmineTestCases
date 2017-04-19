@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "myApp">
+<br><br><br>
+
+<script>
+
+    <!-- CODE -->
+
+    var app = angular.module('myApp', [])
+
+    app.service('serviceA', function(){
+        return{
+            methodName: function(context){
+                return context + " is the context.";
+            }
+        }
+    });
+
+    <!-- JASMINE -->
+
+    describe('service: serviceA', function() {
+
+        var serviceA ;
+
+        beforeEach(function(){
+            module('myApp');
+        });
+
+        beforeEach(inject(function (_serviceA_) {
+            serviceA = _serviceA_;
+        }));
+        
+        describe('method: methodName', function(){
+            it('should initialize some variables', function(){
+                expect(serviceA).toBeDefined();
+                var context = "Hello World!"
+                expect(serviceA.methodName(context)).toEqual("Hello World! is the context.");
+            });
+        });
+    });
+</script>
+
+</body>
+
+</html>

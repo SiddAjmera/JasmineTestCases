@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "myApp">
+
+<div ng-controller = "MyCtrl">
+{{greeting}}
+</div>
+<br><br><br>
+
+<script>
+
+    <!-- CODE -->
+
+    var myApp = angular.module('myApp',[]);
+
+    myApp.controller('MyCtrl', ['$scope', function($scope) {
+        $scope.greeting = 'Hello World!';
+    }]);
+
+    <!-- JASMINE -->
+
+    describe('myApp', function () {
+        var scope,
+        controller;
+        beforeEach(function () {
+            module('myApp');
+        });
+
+        describe('MyCtrl', function () {
+            beforeEach(inject(function ($rootScope, $controller) {
+                scope = $rootScope.$new();
+                controller = $controller('MyCtrl', {
+                    '$scope': scope
+                });
+            }));
+            it('sets the greeting', function () {
+                expect(scope.greeting).toBe('Hello World!');
+            });
+
+        });
+    });
+
+    describe('JavaScript addition operator', function () {
+        it('adds two numbers together', function () {
+            expect(1 + 2).toEqual(3);
+        });
+    });
+</script>
+
+</body>
+
+</html>

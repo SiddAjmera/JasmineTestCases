@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "myApp">
+
+<div ng-controller = "myAppController">
+{{greeting}}
+</div>
+<br><br><br>
+
+<script>
+
+    <!-- CODE -->
+
+    var app = angular.module('myApp', [])
+
+    app.service('serviceA', function(){
+        return{
+            methodName: function(){
+                return 'something'
+            }
+        }
+    });
+
+    app.service('serviceB', function(serviceA){
+        return{
+            numerateColumns: function (rows) {
+                rows.each(function () {
+                    var $row = $(this);
+                    $row.children().each(function (index) {
+                        var $cell = $(this);
+                        $cell.addClass('column-' + (index + 1));
+                    });
+                });
+            }
+        }
+    });
+
+    app.controller('myAppController', function($scope, serviceB){
+        $scope.greeting = 'Hello World!';
+        $scope.b = serviceB.methodName();
+    });
+
+    <!-- JASMINE -->
+
+    describe('controller: myAppController', function() {
+
+        var myAppController, $controller, $rootScope, $httpBackend ,authenticationService, scope, serviceB, ;
+
+        beforeEach(function(){
+            module('myApp');
+        });
+
+        beforeEach(inject(function ($controller, $rootScope, _serviceB_) {
+            scope = $rootScope.$new();
+            serviceB = _serviceB_;
+
+            /*spyOn(serviceB, 'methodName').and.callFake(function(){
+                return undefined;
+            });*/
+
+            myAppController = $controller('myAppController', {
+                $scope: scope,
+                serviceB: _serviceB_
+            });
+        }));
+        
+        describe('initialization', function(){
+            it('should initialize some variables', function(){
+                /*expect(serviceB.methodName).toHaveBeenCalled();
+                expect(scope.greeting).toEqual('Hello World!');
+                expect(scope.b).not.toBeDefined();
+                expect(scope.b).toBe(undefined);*/
+
+                expect(serviceB.methodName).toHaveBeenCalled();
+                expect(scope.greeting).toEqual('Hello World!');
+                expect(scope.b).toBeDefined();
+                expect(scope.b).toBe('something');
+            });
+        });
+    });
+</script>
+
+</body>
+
+</html>

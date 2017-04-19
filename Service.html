@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <script type="text/javascript" src="./node_modules/@angular/router/angular1/angular_1_router.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body ng-app="mysampleapp.core">
+    <br><br><br>
+
+    <script>
+        <!-- CODE -->
+        'use strict';
+        // Mind the module this is only in mysampleapp
+        angular.module('mysampleapp', []).service('CommonService', function() {
+            var obj = {
+                /* All page validation check before perform analysis */
+                isValidationSuccess: false,
+                /* Highlight the menu */
+                activeMenu: 'HomeMenu'
+            };
+
+            function setProperty(key, value) {
+                obj[key] = value;
+            }
+
+            function getProperty(key) {
+                return obj[key];
+            }
+
+            function getAllProperties() {
+                return obj;
+            }
+
+            return {
+                setProperty: setProperty,
+                getProperty: getProperty,
+                getAllProperties: getAllProperties
+            };
+        });
+
+        'use strict';
+        // Mind the module this is only in mysampleapp
+        angular.module('mysampleapp').service('ModalService', function() {
+            return {};
+        });
+
+        'use strict';
+        // Mind the module this is in mysampleapp.core
+        angular.module('mysampleapp.core', ['mysampleapp', 'ngComponentRouter']).service('RouteService', function(CommonService, $rootRouter, ModalService) {
+            return {
+                goTo: goTo,
+                getActivePage: getActivePage
+            };
+
+            function goTo(page) {
+                var valid = CommonService.getProperty('isValidationSuccess');
+
+                switch (page) {
+                    case 'AboutUs':
+                        if (valid) {
+                            CommonService.setProperty('activeMenu', page);
+                            $rootRouter.navigate([page]);
+                        } else {
+                            ModalService.openModal('Analysis Error', 'Complete Application Group configuration prior to running analysis.', 'Error');
+                        }
+                        break;
+
+                    default:
+                        CommonService.setProperty('activeMenu', page);
+                        $rootRouter.navigate([page]);
+                        break;
+                }
+            }
+
+            function getActivePage() {
+                return CommonService.getProperty('activeMenu');
+            }
+        });
+
+        <!-- JASMINE -->
+        /**
+         * This code is copyright (c) 2016 DELLEMC Corporation
+         */
+        'use strict';
+
+        describe('RouteService', function() {
+
+            var RouteService, ModalService, CommonService;
+            //     mockedValue, commonServiceSpy, RouteServiceSpy;
+
+            beforeEach(module('mysampleapp.core'));
+
+            // beforeEach(module('basic-unity-replication-sizer-ui.core'));
+            // beforeEach(module('basic-unity-replication-sizer-ui'));
+
+            beforeEach(inject(function(_RouteService_, _ModalService_, _CommonService_, $rootRouter) {
+                RouteService = _RouteService_;
+                ModalService = _ModalService_;
+                CommonService = _CommonService_;
+                $rootRouter.navigate = jasmine.createSpy();
+            }));
+
+            it('should exist', function() {
+                expect(RouteService).toBeDefined();
+                expect(angular.isFunction(RouteService.goTo)).toBeTruthy();
+                expect(angular.isFunction(RouteService.getActivePage)).toBeTruthy();
+                // this gives error expect undefine dto be defined
+            });
+        });
+    </script>
+
+</body>
+
+</html>

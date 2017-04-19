@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-websocket/2.0.1/angular-websocket.min.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body ng-app="myApp">
+    <br><br><br>
+
+    <script>
+        <!-- CODE -->
+
+        angular.module('myApp', ['ngWebSocket'])
+            .factory('myService', function($websocket) {
+                var socketStream, messages = [],
+                    websocketUrl = 'ws://myapp';
+
+                function _handleIncomingMessages() {
+                    socketStream.onMessage = function(msg) {
+                        messages.push(msg);
+                    };
+                }
+
+                function initializeWebsocket() {
+                    socketStream = $websocket(websocketUrl);
+                    socketStream.onOpen(this._handleIncomingMessages);
+                }
+
+                return {
+                    initializeWebsocket: initializeWebsocket,
+                    messages: messages,
+                    websocketUrl: websocketUrl
+                };
+            })
+            .controller('MyController', function($scope, myService) {
+
+                $scope.initializeSocketStream = function() {
+                    myService.initializeWebsocket();
+                };
+
+                $scope.messages = myService.messages;
+                $scope.websocketUrl = myService.websocketUrl;
+            });
+
+        <!-- JASMINE -->
+
+        describe('My test code', function() {
+            var $controller, $websocketBackend, myService, controllerInstance, $rootScope, ws;
+
+            beforeEach(module('myApp'));
+
+            beforeEach(inject(function(_$controller_, _$rootScope_, _$websocket_, _myService_) {
+                $controller = _$controller_;
+                $rootScope = _$rootScope_;
+                $websocket = _$websocket_;
+                myService = _myService_;
+
+                $websocket.expectSend({
+                    data: JSON.stringify({
+                        id: 1,
+                        text: 'Hello'
+                    })
+                });
+
+                ws = $websocket.$new({
+                    url: 'ws://myapp',
+                    mock: true
+                });
+
+                ws.$on('message', function () {
+                    done(); // enable all tests after the websocket connection is established
+                });
+
+                controllerInstance = $controller('MyController', {
+                    $scope: $rootScope.$new(),
+                    myService: myService
+                });
+            }));
+
+            afterEach(function () {
+                ws.$close(); // close the connection
+            });
+
+            it('on initialization does not contains any messages', function() {
+                expect(controllerInstance.messages.length).toBe(0);
+            });
+
+            it('should add an item in the messages when a new message arrives', function() {
+                controllerInstance.initializeSocketStream();
+
+                //Q1. How to push a message item (eg: {id: 1, text: 'Hello'}) from the websocket server so that the onMessage event handler gets called? I tried using `$websocketBackend.mockSend({id: 1,  text: 'Hello'}), didn\'t work.
+
+                expect(controllerInstance.messages.length).toBe(1);
+
+            });
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-route.js"></script> 
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-sanitize.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "ps.users.adminUsers">
+<br><br><br>
+
+<script>
+
+    <!-- CODE -->
+
+    angular.module('ps.users.adminUsers', ['ngSanitize']).controller('AdminUsersController', ['$rootScope', '$scope', '$sanitize',
+    function($rootScope, $scope, $sanitize) {
+        var self = this, columnDefs, dataSource, limit = 10000, filterString;
+    }]);
+
+    <!-- JASMINE -->
+    describe('Test for AdminUsersController /', function(){
+
+        // load adminUsers module
+        beforeEach(module('ps.users.adminUsers'));
+
+        describe('Test Search For function / ',function() {
+            beforeEach(inject(function ($controller, $rootScope, $sanitize) {
+                $sanitize = $sanitize;
+                $rootScope = $rootScope;
+                $scope = $rootScope.$new();
+                AdminUsersController = $controller('AdminUsersController', {
+                    $rootScope: $rootScope,
+                    $scope: $scope,
+                    $sanitize: $sanitize
+                });
+            }));
+
+            it('Should add Admin user', function ()  {
+                expect(AdminUsersController).toBeDefined();
+            });
+        });
+    });
+</script>
+
+</body>
+
+</html>

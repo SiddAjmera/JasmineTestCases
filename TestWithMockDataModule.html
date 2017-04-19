@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jasmine.js"></script>
+    <script src="jasmine-html.js"></script>
+    <script src="boot.js"></script>
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-mocks.js"></script>
+    <link rel="shortcut icon" type="image/png" href="jasmine_favicon.png">
+    <link rel="stylesheet" href="jasmine.css">
+</head>
+
+<body  ng-app = "MyApp">
+<br><br><br>
+
+<script>
+
+    <!-- CODE -->
+
+    angular.module('MyApp', []);
+
+    angular.module('MyApp')
+    .service('MyService', ['$http', function ($http) {                                                  
+        return {
+            getMyData: function () {                                        
+                return $http.get('www.something.com');
+            }                
+        };
+    }]);
+
+    angular.module('MyApp')
+    .controller('MyAppController', ['$scope', function($scope){
+        var getMyData = function () {
+            MyService.getMyData().then(function (response) {
+                $scope.results = response.data;
+            }, function (err, status) {
+                $scope.results = { cause: "Some Error Message" };
+            });
+        }
+        $scope.Call = function(){
+            getMyData();
+        }
+        $scope.Call();
+    }]);
+
+    angular.module('TestData', [])
+    .constant('moduleMockData', {
+  		mockData: { foo: "bar" },
+        errorMessage: { cause: "Some Error Message" }
+    });
+
+    <!-- JASMINE -->
+
+    describe('Controller: MyAppController', function(){
+        beforeEach(function(){
+            module('MyApp');
+            module('TestData');
+        });
+        var flag;
+        beforeEach(inject(function($controller, $rootScope, _MyService_, _moduleMockData_) {
+            $scope = $rootScope.$new();
+            MyService = _MyService_;
+            moduleMockData = _moduleMockData_;
+            spyOn(MyService, 'getMyData').and.callFake(function(){
+                var response = {};
+                return{
+                    then: function(successCallback, errorCallback){
+                        if(flag){
+                            response.status = 200;
+                            response.data = moduleMockData.mockData;
+                            successCallback(response);
+                        }else{
+                            response.status = 500;
+                            response.data = moduleMockData.errorMessage;
+                            errorCallback(response);
+                        }
+                    }
+                }
+            });
+            MyAppController = $controller('MyAppController', {
+                $scope: $scope,
+                MyService: MyService
+            });
+        }));
+
+        describe('function: Call', function() {
+            //Text for Success Callback
+            it('should implicitly call MyService.getMyData and get success response', function() {
+                flag = true;
+                $scope.Call();
+                expect(MyService.getMyData).toHaveBeenCalled();
+                expect($scope.results).toEqual(moduleMockData.mockData);
+            });
+            //Text for Error Callback
+            it('should implicitly call MyService.getMyData and get an error object', function() {
+                flag = false;
+                $scope.Call();
+                expect(MyService.getMyData).toHaveBeenCalled();
+                expect($scope.results).toEqual(moduleMockData.errorMessage);
+            });
+        });
+    });
+
+</script>
+
+</body>
+
+</html>
